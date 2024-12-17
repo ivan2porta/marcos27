@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Move Div on Space</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #87CEEB; /* Light blue sky */
+    }
+
+    #road {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 200px;
+      background: #333; /* Asphalt */
+      transform: translateY(-50%);
+      box-shadow: inset 0 0 10px #000;
+    }
+
+    #road::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: #fff; /* Road stripe */
+      transform: translateY(-50%);
+    }
+
+    #movingDiv {
+      position: absolute;
+      top: calc(50% - 50px);
+      left: 0;
+      width: 100px;
+      height: 100px;
+      background: url('marcos.png') no-repeat center center;
+      background-size: cover;
+    }
+
+    #counter {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px; /* Increase the font size */
+      font-family: Arial, sans-serif;
+      text-align: center; /* Center the text */
+    }
+
+    #message {
+      display: none;
+      position: fixed;
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 30px;
+      font-family: Arial, sans-serif;
+      color: white;
+      background-color: black;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    body.success {
+      background: url('masca.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <div id="road">
+    <div id="movingDiv"></div>
+  </div>
+  <div id="counter">Queden 42km</div>
+  <div id="message">Felicitats Marcos!</div>
+
+  <script>
+    const movingDiv = document.getElementById('movingDiv');
+    const counter = document.getElementById('counter');
+    const message = document.getElementById('message');
+    const road = document.getElementById('road');
+    let moveCount = 0;
+    let lastPressTime = 0;
+    const maxPresses = 42;
+    let timeoutId;
+    const screenWidth = window.innerWidth;
+    const stepSize = screenWidth / maxPresses;
+    let isKeyDown = false; // Track key state
+
+    const resetPosition = () => {
+      moveCount = 0;
+      movingDiv.style.left = '0px';
+      counter.textContent = `Queden ${maxPresses}km`;
+    };
+
+    const resetAfterDelay = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        resetPosition();
+        lastPressTime = 0; // Ensure reset is complete
+      }, 300);
+    };
+
+    const showMessage = () => {
+      road.style.display = 'none';
+      movingDiv.style.display = 'none';
+      counter.style.display = 'none';
+      message.style.display = 'block';
+      document.body.classList.add('success');
+    };
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space' && !isKeyDown) {
+        isKeyDown = true; // Mark key as pressed
+        const currentTime = Date.now();
+
+        // Reset if more than 0.3 seconds passed since the last press
+        if (currentTime - lastPressTime > 300) {
+          resetPosition();
+        }
+
+        lastPressTime = currentTime;
+        resetAfterDelay();
+
+        moveCount++;
+
+        // Move the div if within 42 presses
+        if (moveCount <= maxPresses) {
+          movingDiv.style.left = `${moveCount * stepSize}px`;
+          counter.textContent = `Queden ${maxPresses - moveCount}km`;
+        }
+
+        // Show the message when maxPresses is reached
+        if (moveCount === maxPresses) {
+          showMessage();
+        }
+
+        // Prevent default behavior (e.g., scrolling)
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.code === 'Space') {
+        isKeyDown = false; // Mark key as released
+      }
+    });
+  </script>
+</body>
+</html>
